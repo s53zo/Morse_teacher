@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morse Teacher powered by jscwlib</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb; /* Light gray background */
+      --card-bg: #ffffff; /* White for cards */
+      --accent: #3b82f6; /* A modern, friendly blue */
+      --accent-muted: rgba(59, 130, 246, 0.15); /* Light blue for focus/active */
+      --text: #1f2937; /* Dark slate for text */
+      --text-muted: #6b7280; /* Medium gray for muted text */
+      --danger: #ef4444; /* A clear red for danger/errors */
+      --border: #e5e7eb; /* Light gray for borders */
+      --sidebar-bg: #f3f4f6; /* Slightly darker bg for sidebar */
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    
+    /* NEW: Page Container */
+    .page-container {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* NEW: Header is now page-wide */
+    header {
+      padding: 40px 32px 32px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--card-bg);
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.1rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    p.lead {
+      color: var(--text-muted);
+      margin: 8px 0 0;
+      max-width: 700px;
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+    
+    /* NEW: Main Layout Wrapper */
+    .layout-wrapper {
+      display: grid;
+      /* Define the two-column layout */
+      grid-template-columns: 320px 1fr;
+      /* Align sidebar to the top */
+      align-items: start;
+      gap: 32px;
+      padding: 32px;
+    }
+
+    /* NEW: Sidebar Panel */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      /* Make sidebar sticky on tall screens */
+      position: sticky;
+      top: 32px;
+    }
+
+    /* NEW: Main Content Panel */
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-width: 0; /* Fix flexbox overflow */
+    }
+
+    /* NEW: Universal Card Style */
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+    .sidebar-panel .card {
+      background: var(--card-bg); /* Sidebar cards are white */
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Controls Styling (in sidebar) */
+    .controls {
+      display: grid;
+      gap: 20px;
+    }
+    .controls-row {
+      display: flex;
+      flex-direction: column; /* Stack controls in sidebar */
+      gap: 16px;
+      align-items: stretch;
+    }
+    label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    select, button, input[type="number"] {
+      background: #f9fafb; /* Lightest gray bg */
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+    select:focus, input[type="number"]:focus, textarea:focus, button:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-muted);
+      background: var(--card-bg);
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      margin-top: 4px;
+    }
+    .range-value {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+    button.action {
+      background: var(--accent);
+      border-color: transparent;
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.action:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    button.secondary {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    button.secondary:hover:not(:disabled) {
+      background: #f9fafb;
+      transform: translateY(-1px);
+    }
+    button.action:hover:not(:disabled) {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+    
+    /* NEW: Status Card Styling (in sidebar) */
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 12px;
+    }
+    .status-grid span {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .status-grid strong {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 1.1rem;
+      /* Ellipsis for long preset names */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-grid .status-full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* NEW: Entry Panel Styling (in main area) */
+    .entry-panel {
+      position: relative;
+      border: 1px solid var(--border);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .entry-panel.focused {
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px var(--accent-muted);
+    }
+    .entry-panel h3 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .entry-hint {
+      margin: 0 0 14px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .letter-hint {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px dashed rgba(37, 99, 235, 0.4);
+      background: rgba(37, 99, 235, 0.08);
+      color: #1d4ed8;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .letter-hint.visible {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .letter-hint.visible::before {
+      content: "Hint";
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.15);
+      color: #1e3a8a;
+      letter-spacing: 0.08em;
+    }
+    .letter-hint.paused {
+      border-color: rgba(249, 115, 22, 0.45);
+      background: rgba(249, 115, 22, 0.12);
+      color: #b45309;
+    }
+    .letter-hint.paused::before {
+      content: "Paused";
+      background: rgba(249, 115, 22, 0.22);
+      color: #92400e;
+    }
+    textarea {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--text);
+      font-size: 1.1rem;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 140px;
+    }
+    textarea::placeholder {
+      color: #9ca3af;
+    }
+    textarea:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: #f9fafb;
+    }
+
+    /* Graph Styling (in main area) */
+    .graph-wrapper {
+      display: grid;
+      gap: 12px;
+    }
+    .graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .graph-bars {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      min-height: 220px;
+      padding: 18px 20px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+    }
+    .graph-bars.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      min-height: 140px;
+    }
+    .graph-bar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      scroll-snap-align: end;
+      flex: 0 0 clamp(42px, 4vw, 60px);
+    }
+    .graph-bar span { z-index: 1; }
+    .graph-bar .bar {
+      width: 100%;
+      border-radius: 10px 10px 4px 4px;
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.95) 0%, rgba(37, 99, 235, 0.7) 65%, rgba(37, 99, 235, 0.4) 100%);
+      border: 1px solid rgba(37, 99, 235, 0.45);
+      box-shadow: 0 10px 18px -10px rgba(30, 64, 175, 0.55);
+      transition: height 0.35s ease, background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+      min-height: 6px;
+    }
+    .graph-bar .bar::after {
+      content: "";
+      display: block;
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 6px;
+      background: rgba(37, 99, 235, 0.35);
+      border-radius: 10px;
+      filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .graph-bar.current .bar {
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.95) 0%, rgba(16, 185, 129, 0.7) 65%, rgba(16, 185, 129, 0.45) 100%);
+      border-color: rgba(16, 185, 129, 0.6);
+      box-shadow: 0 12px 22px -8px rgba(16, 185, 129, 0.55);
+    }
+    .graph-bar.current .bar::after { opacity: 1; }
+    .graph-bar .letter { font-weight: 600; color: var(--text); }
+    .graph-bar .value { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: #1d4ed8; }
+    .graph-bar.current .value { color: #0f9d7a; }
+    
+    /* Table Styling */
+    .graph-table {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card-bg);
+      max-height: 0;
+      transition: max-height 0.3s ease;
+    }
+    .graph-table.open { max-height: 420px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    th {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: #f9fafb;
+    }
+    tr.current-row { background: var(--accent-muted); }
+    .hint { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Dialog Styling */
+    dialog {
+      border: none;
+      border-radius: 18px;
+      padding: 28px;
+      background: var(--card-bg);
+      color: var(--text);
+      max-width: 640px;
+      width: 100%;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.15);
+    }
+    dialog::backdrop { background: rgba(17, 24, 39, 0.6); }
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .letter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .letter-chip {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 0;
+      text-align: center;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.1s;
+      background: #f9fafb;
+      color: var(--text);
+      user-select: none;
+    }
+    .letter-chip:hover {
+      transform: translateY(-1px);
+      background: #f3f4f6;
+    }
+    .letter-chip.active {
+      border-color: var(--accent);
+      background: var(--accent-muted);
+      color: var(--accent);
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* NEW: Responsive Layout */
+    @media (max-width: 1024px) {
+      .layout-wrapper {
+        /* Stack columns */
+        grid-template-columns: 1fr;
+      }
+      .sidebar-panel {
+        /* Un-stick sidebar */
+        position: static;
+        /* Make sidebar cards horizontal */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .controls-row {
+        /* Allow horizontal controls again */
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+    @media (max-width: 720px) {
+      .layout-wrapper {
+        padding: 24px 16px;
+        gap: 24px;
+      }
+      header {
+        padding: 24px 16px;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+      p.lead {
+        font-size: 0.95rem;
+      }
+      .sidebar-panel {
+        /* Stack sidebar cards again */
+        grid-template-columns: 1fr;
+      }
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-container">
+
+    <header>
+      <h1>Morse Teacher (jscwlib)</h1>
+      <p class="lead">
+        Practice copying Morse code with adaptive difficulty. <b>Choose a letter
+        set</b>, click start,
+        and type the character you hear.
+      </p>
+    </header>
+
+    <div class="layout-wrapper">
+      
+      <aside class="sidebar-panel">
+        
+        <article class="card controls">
+          <h2>Session Setup</h2>
+          <div class="controls-row">
+            <label>
+              Alphabet preset
+              <select id="presetSelect">
+                <option value="starter">Starter (C, Q)</option>
+                <option value="koch">Koch Progression</option>
+                <option value="letters">Letters A–Z</option>
+                <option value="alphanumeric">Letters + Digits</option>
+                <option value="full">Ward Cunningham Set</option>
+                <option value="zo-difficult">ZO Difficult</option>
+                <option value="custom">Custom selection…</option>
+              </select>
+            </label>
+            <label>
+              Default miss chance (%)
+              <input type="number" id="defaultExpect" value="100" min="0" max="100" step="5" disabled>
+            </label>
+            <button class="secondary" id="customizeButton" type="button">Pick letters</button>
+          </div>
+          <div class="controls-row">
+            <label style="flex:1; min-width: 100%;">
+              Output volume
+              <input type="range" id="volumeSlider" min="0" max="100" value="30">
+              <span class="range-value" id="volumeValue">30%</span>
+            </label>
+            <label style="flex:1; min-width: 100%;">
+              Morse speed (WPM)
+              <input type="range" id="speedSlider" min="5" max="60" value="18">
+              <span class="range-value" id="speedValue">18 WPM</span>
+            </label>
+          </div>
+          <div class="controls-row">
+            <button class="action" id="startButton" type="button">Start session</button>
+            <button class="secondary" id="restartButton" type="button" disabled>Restart</button>
+          </div>
+          <span class="hint">Alt/Cmd + S saves your notes (kept on this page only).</span>
+        </article>
+        
+        <article class="card status-card">
+          <h2>Live Status</h2>
+          <div class="status-grid">
+            <span>Current letter<strong id="currentLetter">–</strong></span>
+            <span>Miss chance<strong id="currentExpect">–</strong></span>
+            <span>Last response<strong id="lastMetric">–</strong></span>
+            <span class="status-full-width">Preset<strong id="activePresetLabel">Starter (C, Q)</strong></span>
+          </div>
+        </article>
+
+      </aside>
+      
+      <main class="main-panel">
+        
+        <article class="card entry-panel" id="entryPanel">
+          <h3>Type what you hear</h3>
+          <p class="entry-hint">Letters play one at a time. Type exactly what you hear—nothing advances until you copy the letter. Press Enter whenever you need a break.</p>
+          <div class="letter-hint" id="letterHint" hidden></div>
+          <textarea id="answerField" placeholder="Click start, then copy the character you hear. Press Enter to pause for a break." disabled></textarea>
+        </article>
+        
+        <article class="card graph-wrapper">
+          <div class="graph-header">
+            <h2>Letter Focus</h2>
+            <div class="graph-toggle">
+              <button class="secondary" id="toggleGraphView" type="button">Show table</button>
+            </div>
+          </div>
+          <div class="graph-bars empty" id="graphBars">
+            Select a preset and start the session to see live progress.
+          </div>
+          <div class="graph-table" id="graphTableWrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Letter</th>
+                  <th>Morse</th>
+                  <th>Miss %</th>
+                </tr>
+              </thead>
+              <tbody id="graphTableBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+      </main>
+      
+    </div> </div> <dialog id="letterDialog">
+    <div class="dialog-header">
+      <h2>Choose letters</h2>
+      <button class="secondary" id="closeDialog" type="button">Close</button>
+    </div>
+    <p class="hint">Select the characters you want to practice. The session uses the default expect value unless the preset defines its own progression.</p>
+    <div class="letter-grid" id="letterGrid"></div>
+    <div class="dialog-actions">
+      <button class="secondary" id="clearSelection" type="button">Clear</button>
+      <button class="action" id="applySelection" type="button">Use selection</button>
+    </div>
+  </dialog>
+
+  <script src="https://fkurz.net/ham/jscwlib/releases/jscwlib-0.3.0.js"></script>
+  <script>
+    // All the original JavaScript functionality is retained without modification.
+    const MORSE_MAP = {
+      A: ".-",
+      B: "-...",
+      C: "-.-.",
+      D: "-..",
+      E: ".",
+      F: "..-.",
+      G: "--.",
+      H: "....",
+      I: "..",
+      J: ".---",
+      K: "-.-",
+      L: ".-..",
+      M: "--",
+      N: "-.",
+      O: "---",
+      P: ".--.",
+      Q: "--.-",
+      R: ".-.",
+      S: "...",
+      T: "-",
+      U: "..-",
+      V: "...-",
+      W: ".--",
+      X: "-..-",
+      Y: "-.--",
+      Z: "--..",
+      0: "-----",
+      1: ".----",
+      2: "..---",
+      3: "...--",
+      4: "....-",
+      5: ".....",
+      6: "-....",
+      7: "--...",
+      8: "---..",
+      9: "----.",
+      ".": ".-.-.-",
+      ",": "--..--",
+      "?": "..--..",
+      "/": "-..-.",
+      "+": ".-.-.",
+      "=": "-...-",
+      "-": "-....-",
+      "'": ".----.",
+      "\"": ".-..-.",
+      "@": ".--.-.",
+      "!": "-.-.--",
+      ":": "---...",
+      ";": "-.-.-.",
+      "(": "-.--.",
+      ")": "-.--.-",
+      "&": ".-...",
+      "_": "..--.-"
+    };
+
+    const KOCH_SEQUENCE = [
+      "K", "M", "R", "S", "U", "A", "P", "T", "L", "O", "W", "I", "N", "J", "E", "F", "0", "Y",
+      ",", "V", "G", "5", "/", "Q", "9", "Z", "H", "3", "8", "B", "?", "4", "2", "7", "C", "1", "D", "6", "X"
+    ];
+
+    const PRESET_DATA = {
+      starter: {
+        name: "Starter (C, Q)",
+        description: "Begin with two letters to establish rhythm.",
+        data: "C -.-. 100\nQ --.- 60"
+      },
+      koch: {
+        name: "Koch Progression",
+        description: "Classic Koch order, introducing one letter at a time.",
+        build: () => KOCH_SEQUENCE.map((letter, index) => ({
+          letter,
+          morse: MORSE_MAP[letter],
+          expect: index < 2 ? 90 : null
+        }))
+      },
+      letters: {
+        name: "Letters A–Z",
+        description: "Full alphabet set.",
+        build: (expect) => "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(letter => ({
+          letter,
+          morse: MORSE_MAP[letter],
+          expect
+        }))
+      },
+      alphanumeric: {
+        name: "Letters + Digits",
+        description: "A–Z plus numerals 0–9.",
+        build: (expect) => "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("").map(letter => ({
+          letter,
+          morse: MORSE_MAP[letter],
+          expect
+        }))
+      },
+      full: {
+        name: "Ward Cunningham Set",
+        description: "Original plugin data file.",
+        data: `
+Q --.- 60
+7 --... 70
+Z --..
+G --.
+0 -----
+9 ----.
+8 ---..
+O ---
+1 .----
+J .---
+P .--.
+W .--
+L .-..
+R .-.
+A .-
+M --
+6 -....
+B -...
+X -..-
+D -..
+Y -.--
+C -.-.
+K -.-
+N -.
+2 ..---
+3 ...--
+F ..-.
+U ..-
+4 ....-
+5 .....
+V ...-
+H ....
+S ...
+I ..
+T -
+E .
+`.trim()
+      },
+      "zo-difficult": {
+        name: "ZO Difficult",
+        description: "Focus on higher-mistake characters reported by operators.",
+        build: (expect) => "SH5DB678".split("").map(letter => ({
+          letter,
+          morse: MORSE_MAP[letter],
+          expect
+        }))
+      }
+    };
+
+    const LETTER_POOL = [
+      ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      ..."0123456789",
+      ".", ",", "?", "/", "+", "=", "-", "'", "\"", "@", "!", ":", ";", "(", ")", "&", "_"
+    ].filter((item, index, array) => array.indexOf(item) === index);
+
+    const presetSelect = document.getElementById("presetSelect");
+    const defaultExpectInput = document.getElementById("defaultExpect");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const volumeValue = document.getElementById("volumeValue");
+    const speedSlider = document.getElementById("speedSlider");
+    const speedValue = document.getElementById("speedValue");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const answerField = document.getElementById("answerField");
+    const currentLetterEl = document.getElementById("currentLetter");
+    const currentExpectEl = document.getElementById("currentExpect");
+    const lastMetricEl = document.getElementById("lastMetric");
+    const activePresetLabel = document.getElementById("activePresetLabel");
+    const graphBarsEl = document.getElementById("graphBars");
+    const graphTableWrapper = document.getElementById("graphTableWrapper");
+    const graphTableBody = document.getElementById("graphTableBody");
+    const toggleGraphViewButton = document.getElementById("toggleGraphView");
+    const dialog = document.getElementById("letterDialog");
+    const customizeButton = document.getElementById("customizeButton");
+    const closeDialogButton = document.getElementById("closeDialog");
+    const applySelectionButton = document.getElementById("applySelection");
+    const clearSelectionButton = document.getElementById("clearSelection");
+    const letterGrid = document.getElementById("letterGrid");
+    const entryPanel = document.getElementById("entryPanel");
+    const letterHint = document.getElementById("letterHint");
+
+    let alphabet = [];
+    let cwPlayer = null;
+    let sessionActive = false;
+    let trial = null;
+    let observeScore = 0;
+    let observeTimer = null;
+    let replayTimer = null;
+    let lastInputValue = "";
+    let customSelection = new Set();
+    let hintTimer = null;
+    let sessionInitialized = false;
+    let isOnBreak = false;
+
+    const HINT_DELAY_MS = 3200;
+
+    const computeVolume = (sliderValue) => {
+      const clamped = Math.min(Math.max(Number(sliderValue) || 0, 0), 100);
+      return Number((clamped / 100).toFixed(3));
+    };
+
+    const currentVolumeValue = () => computeVolume(volumeSlider.value);
+
+    const updateVolumeLabel = () => {
+      const effective = currentVolumeValue();
+      const percent = Math.round(effective * 100);
+      volumeValue.textContent = `${percent}%`;
+      return effective;
+    };
+
+    const clampPercent = (value) => Math.max(0, Math.min(100, Number(value) || 0));
+
+    const currentWpmValue = () => Math.max(5, Math.min(60, Number(speedSlider.value) || 18));
+    const currentEffValue = () => {
+      const wpm = currentWpmValue();
+      return Math.max(4, Math.min(wpm - 4, Math.round(wpm * 0.7)));
+    };
+
+    const updateSpeedLabel = () => {
+      const wpm = currentWpmValue();
+      let eff = currentEffValue();
+      if (eff >= wpm) {
+        eff = Math.max(5, wpm - 5);
+      }
+      speedValue.textContent = `${wpm} WPM`;
+      return { wpm, eff };
+    };
+
+    const cancelHintTimer = () => {
+      clearTimeout(hintTimer);
+      hintTimer = null;
+    };
+
+    const hideHint = () => {
+      letterHint.textContent = "";
+      letterHint.classList.remove("visible", "paused");
+      if (!letterHint.hasAttribute("hidden")) {
+        letterHint.setAttribute("hidden", "hidden");
+      }
+    };
+
+    const scheduleHint = () => {
+      cancelHintTimer();
+      if (!sessionActive || !trial) return;
+      hintTimer = setTimeout(() => {
+        if (!sessionActive || !trial) return;
+        showHint();
+      }, HINT_DELAY_MS);
+    };
+
+    const showHint = () => {
+      if (!sessionActive || !trial) return;
+      letterHint.textContent = `${trial.letter} — ${trial.morse}`;
+      letterHint.classList.remove("paused");
+      letterHint.classList.add("visible");
+      letterHint.removeAttribute("hidden");
+      playLetter();
+      scheduleHint();
+    };
+
+    const showPauseMessage = () => {
+      cancelHintTimer();
+      letterHint.textContent = "Session paused. Press Resume to continue.";
+      letterHint.classList.add("visible", "paused");
+      letterHint.removeAttribute("hidden");
+    };
+
+    const initLetterGrid = () => {
+      letterGrid.innerHTML = "";
+      LETTER_POOL.forEach(letter => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "letter-chip";
+        chip.textContent = letter;
+        chip.dataset.letter = letter;
+        chip.addEventListener("click", () => {
+          if (chip.classList.toggle("active")) {
+            customSelection.add(letter);
+          } else {
+            customSelection.delete(letter);
+          }
+        });
+        letterGrid.appendChild(chip);
+      });
+    };
+
+    const syncLetterGridSelection = () => {
+      const chips = letterGrid.querySelectorAll(".letter-chip");
+      chips.forEach(chip => {
+        const letter = chip.dataset.letter;
+        if (customSelection.has(letter)) {
+          chip.classList.add("active");
+        } else {
+          chip.classList.remove("active");
+        }
+      });
+    };
+
+    const parsePresetData = (presetKey, expectFallback) => {
+      const preset = PRESET_DATA[presetKey];
+      if (!preset) return [];
+
+      if (typeof preset.build === "function") {
+        return preset.build(expectFallback).map(item => ({
+          letter: item.letter.toUpperCase(),
+          morse: item.morse,
+          expect: item.expect == null ? null : clampPercent(item.expect)
+        }));
+      }
+
+      return preset.data
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const match = line.match(/^(\S)\s+([.\-]+)(?:\s+(\d+))?$/);
+          if (!match) return null;
+          const [, letter, morse, expectValue] = match;
+          const percent = expectValue != null ? clampPercent(expectValue) : expectFallback;
+          return {
+            letter: letter.toUpperCase(),
+            morse,
+            expect: clampPercent(percent)
+          };
+        })
+        .filter(Boolean);
+    };
+
+    const buildCustomAlphabet = (expectFallback) => {
+      return Array.from(customSelection).map(letter => ({
+        letter,
+        morse: MORSE_MAP[letter],
+        expect: clampPercent(expectFallback)
+      })).filter(item => item.morse);
+    };
+
+    const resetSessionState = () => {
+      sessionActive = false;
+      trial = null;
+      observeScore = 0;
+      lastInputValue = "";
+      currentLetterEl.textContent = "–";
+      currentExpectEl.textContent = "–";
+      lastMetricEl.textContent = "–";
+      answerField.value = "";
+      answerField.disabled = true;
+      answerField.setAttribute("placeholder", "Click start, then copy the character you hear. Press Enter to pause for a break.");
+      entryPanel.classList.remove("focused");
+      cancelHintTimer();
+      hideHint();
+      isOnBreak = false;
+      sessionInitialized = false;
+      clearInterval(observeTimer);
+      observeTimer = null;
+      clearTimeout(replayTimer);
+      replayTimer = null;
+      renderGraph();
+    };
+
+    const renderGraph = () => {
+      const activeLetters = alphabet.filter(item => typeof item.expect === "number" && item.expect >= 0);
+      if (!activeLetters.length) {
+        graphBarsEl.classList.add("empty");
+        graphBarsEl.innerHTML = "Letters will appear here once the session unlocks them.";
+      } else {
+        graphBarsEl.classList.remove("empty");
+        graphBarsEl.innerHTML = "";
+        const maxExpect = Math.max(100, ...activeLetters.map(item => item.expect));
+        activeLetters.forEach(item => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "graph-bar";
+          if (trial && trial.letter === item.letter) {
+            wrapper.classList.add("current");
+          }
+
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          const cappedExpect = Math.max(0, Math.min(100, item.expect));
+          const chartHeight = 200;
+          const barHeight = Math.max(6, Math.round((cappedExpect / Math.max(1, maxExpect)) * chartHeight));
+          bar.style.height = `${barHeight}px`;
+          bar.title = `${item.letter} (${item.morse}) · Miss chance ${Math.round(item.expect)}%`;
+
+          const letterLabel = document.createElement("span");
+          letterLabel.className = "letter";
+          letterLabel.textContent = item.letter;
+
+          const valueLabel = document.createElement("span");
+          valueLabel.className = "value";
+          valueLabel.textContent = `${Math.round(item.expect)}%`;
+
+          wrapper.appendChild(bar);
+          wrapper.appendChild(letterLabel);
+          wrapper.appendChild(valueLabel);
+          graphBarsEl.appendChild(wrapper);
+        });
+      }
+
+      renderGraphTable();
+    };
+
+    const renderGraphTable = () => {
+      graphTableBody.innerHTML = "";
+      alphabet.forEach(item => {
+        const row = document.createElement("tr");
+        if (trial && trial.letter === item.letter) {
+          row.classList.add("current-row");
+        }
+        const expectValue = typeof item.expect === "number" ? `${Math.round(item.expect)}%` : "–";
+        row.innerHTML = `
+          <td>${item.letter}</td>
+          <td>${item.morse || "· ·"}</td>
+          <td>${expectValue}</td>
+        `;
+        graphTableBody.appendChild(row);
+      });
+    };
+
+    const activatePlayer = () => {
+      const { wpm, eff } = updateSpeedLabel();
+      const volumeSetting = updateVolumeLabel();
+      if (!cwPlayer) {
+        cwPlayer = new jscw({ freq: 650 });
+        cwPlayer.onPlay = () => {
+          cwPlayer.setVolume(currentVolumeValue());
+        };
+        cwPlayer.init();
+      }
+      cwPlayer.setWpm(wpm);
+      cwPlayer.setEff(eff);
+      cwPlayer.setVolume(volumeSetting);
+      cwPlayer.setFreq(650);
+      cwPlayer.setText("");
+    };
+
+    const scheduleObserveTimer = () => {
+      clearInterval(observeTimer);
+      observeTimer = setInterval(() => {
+        observeScore = Math.min(observeScore + 1, 100);
+      }, 60);
+    };
+
+    const playLetter = () => {
+      if (!cwPlayer || !trial || !sessionActive) return;
+      clearTimeout(replayTimer);
+      cwPlayer.stop();
+      cwPlayer.setText(trial.letter);
+      cwPlayer.setVolume(currentVolumeValue());
+      cwPlayer.play();
+      replayTimer = setTimeout(() => {
+        playLetter();
+      }, 4200);
+    };
+
+    const chooseTrial = () => {
+      const activeChoices = alphabet.filter(item => typeof item.expect === "number" && item.expect >= 0);
+      const totalArea = activeChoices.reduce((sum, item) => sum + item.expect, 0);
+
+      if (activeChoices.length === 0 || totalArea <= 0) {
+        const nextUnlock = alphabet.find(item => item.expect == null);
+        if (nextUnlock) {
+          nextUnlock.expect = 100;
+          return nextUnlock;
+        }
+        return alphabet[0] || null;
+      }
+
+      let area = Math.random() * totalArea;
+      for (const item of activeChoices) {
+        area -= item.expect;
+        if (area <= 0) {
+          return item;
+        }
+      }
+      return activeChoices[activeChoices.length - 1];
+    };
+
+    const advanceAlphabet = () => {
+      const expectValues = alphabet
+        .filter(item => typeof item.expect === "number")
+        .map(item => item.expect);
+      const worst = expectValues.length ? Math.max(...expectValues) : 0;
+      if (worst < 30) {
+        for (const item of alphabet) {
+          if (item.expect == null) {
+            item.expect = 100;
+            break;
+          }
+        }
+      }
+    };
+
+    const startTrial = () => {
+      trial = chooseTrial();
+      if (!trial) {
+        currentLetterEl.textContent = "–";
+        currentExpectEl.textContent = "–";
+        return;
+      }
+      observeScore = 0;
+      scheduleObserveTimer();
+      currentLetterEl.textContent = trial.letter;
+      currentExpectEl.textContent = typeof trial.expect === "number" ? `${Math.round(trial.expect)}%` : "–";
+      cancelHintTimer();
+      hideHint();
+      playLetter();
+      scheduleHint();
+      renderGraph();
+    };
+
+    const handleCorrectAnswer = () => {
+      clearInterval(observeTimer);
+      observeTimer = null;
+      clearTimeout(replayTimer);
+      replayTimer = null;
+
+      const oldExpect = typeof trial.expect === "number" ? trial.expect : clampPercent(defaultExpectInput.value || 100);
+      const now = Math.min(100, observeScore);
+      trial.expect = clampPercent(oldExpect * 0.8 + now * 0.2);
+      lastMetricEl.textContent = `Response: ${Math.round(now)} ticks`;
+
+      advanceAlphabet();
+      cancelHintTimer();
+      hideHint();
+      renderGraph();
+      answerField.value = "";
+      lastInputValue = "";
+      startTrial();
+    };
+
+    const handleIncorrectAnswer = () => {
+      observeScore = 100;
+      lastMetricEl.textContent = "Incorrect (penalized)";
+      answerField.value = answerField.value.slice(0, -1);
+      lastInputValue = answerField.value;
+      playLetter();
+      scheduleHint();
+      renderGraph();
+    };
+
+    const takeBreak = () => {
+      if (!sessionActive || isOnBreak) return;
+      isOnBreak = true;
+      sessionActive = false;
+      cancelHintTimer();
+      cwPlayer && cwPlayer.stop();
+      clearInterval(observeTimer);
+      observeTimer = null;
+      clearTimeout(replayTimer);
+      replayTimer = null;
+      observeScore = 0;
+      answerField.disabled = true;
+      answerField.blur();
+      entryPanel.classList.remove("focused");
+      showPauseMessage();
+      startButton.disabled = false;
+      startButton.textContent = "Resume session";
+      lastMetricEl.textContent = "Break";
+    };
+
+    const resumeSession = () => {
+      if (!sessionInitialized) return;
+      isOnBreak = false;
+      sessionActive = true;
+      answerField.disabled = false;
+      startButton.disabled = true;
+      startButton.textContent = "Start session";
+      cancelHintTimer();
+      hideHint();
+      observeScore = 0;
+      if (!trial) {
+        startTrial();
+      } else {
+        scheduleObserveTimer();
+        playLetter();
+        scheduleHint();
+      }
+      lastMetricEl.textContent = "Resumed";
+      answerField.focus();
+    };
+
+    const beginSession = () => {
+      if (isOnBreak && sessionInitialized) {
+        resumeSession();
+        return;
+      }
+
+      const expectFallback = clampPercent(defaultExpectInput.value || 100);
+      let nextAlphabet = [];
+      const presetKey = presetSelect.value;
+
+      if (presetKey === "custom") {
+        nextAlphabet = buildCustomAlphabet(expectFallback);
+      } else {
+        nextAlphabet = parsePresetData(presetKey, expectFallback);
+      }
+
+      if (!nextAlphabet.length) {
+        alert("Select at least one valid letter before starting.");
+        return;
+      }
+
+      alphabet = nextAlphabet;
+      activePresetLabel.textContent = PRESET_DATA[presetKey]?.name || "Custom";
+      renderGraph();
+      activatePlayer();
+      sessionActive = true;
+      sessionInitialized = true;
+      isOnBreak = false;
+      answerField.disabled = false;
+      answerField.value = "";
+      answerField.focus();
+      lastInputValue = "";
+      startButton.disabled = true;
+      startButton.textContent = "Start session";
+      restartButton.disabled = false;
+      startTrial();
+    };
+
+    const restartSession = () => {
+      resetSessionState();
+      startButton.disabled = false;
+      startButton.textContent = "Start session";
+      restartButton.disabled = true;
+    };
+
+    answerField.addEventListener("keydown", (event) => {
+      if (!event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && event.key === "Enter") {
+        event.preventDefault();
+        takeBreak();
+        return;
+      }
+      if ((event.altKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        answerField.blur();
+        return;
+      }
+    });
+
+    answerField.addEventListener("input", () => {
+      if (!sessionActive || !trial) {
+        answerField.value = "";
+        lastInputValue = "";
+        return;
+      }
+
+      if (answerField.value.length <= lastInputValue.length) {
+        lastInputValue = answerField.value.toUpperCase();
+        return;
+      }
+
+      const char = answerField.value.slice(-1).toUpperCase();
+      if (char === trial.letter) {
+        handleCorrectAnswer();
+      } else {
+        handleIncorrectAnswer();
+      }
+    });
+
+    volumeSlider.addEventListener("input", () => {
+      const effective = updateVolumeLabel();
+      if (cwPlayer) {
+        cwPlayer.setVolume(effective);
+      }
+    });
+
+    speedSlider.addEventListener("input", () => {
+      const { wpm, eff } = updateSpeedLabel();
+      if (cwPlayer) {
+        cwPlayer.setWpm(wpm);
+        cwPlayer.setEff(eff);
+      }
+    });
+
+    answerField.addEventListener("focus", () => entryPanel.classList.add("focused"));
+    answerField.addEventListener("blur", () => entryPanel.classList.remove("focused"));
+
+    startButton.addEventListener("click", beginSession);
+    restartButton.addEventListener("click", () => {
+      restartSession();
+      answerField.disabled = true;
+    });
+
+    presetSelect.addEventListener("change", () => {
+      const presetKey = presetSelect.value;
+      activePresetLabel.textContent = PRESET_DATA[presetKey]?.name || "Custom";
+      if (presetKey !== "custom") {
+        customSelection.clear();
+      }
+    });
+
+    toggleGraphViewButton.addEventListener("click", () => {
+      const isOpen = graphTableWrapper.classList.toggle("open");
+      toggleGraphViewButton.textContent = isOpen ? "Hide table" : "Show table";
+    });
+
+    customizeButton.addEventListener("click", () => {
+      const presetKey = presetSelect.value;
+      if (presetKey !== "custom") {
+        presetSelect.value = "custom";
+        activePresetLabel.textContent = "Custom";
+      }
+      syncLetterGridSelection();
+      dialog.showModal();
+    });
+
+    closeDialogButton.addEventListener("click", () => dialog.close());
+
+    applySelectionButton.addEventListener("click", () => {
+      if (!customSelection.size) {
+        alert("Pick at least one letter.");
+        return;
+      }
+      dialog.close();
+    });
+
+    clearSelectionButton.addEventListener("click", () => {
+      customSelection.clear();
+      syncLetterGridSelection();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      if (cwPlayer) {
+        cwPlayer.stop();
+      }
+      clearInterval(observeTimer);
+      clearTimeout(replayTimer);
+      cancelHintTimer();
+    });
+
+    initLetterGrid();
+    resetSessionState();
+    updateVolumeLabel();
+    updateSpeedLabel();
+  </script>
+</body>
+</html>
