@@ -1,7 +1,7 @@
 Morse Teacher
 An adaptive, web-based Morse code trainer powered by jscwlib. This application uses the Koch method and weighted probability to automatically focus on the characters you struggle with most.
 
-https://s53zo.github.io/Morse_teacher/index.html
+[https://s53zo.github.io/Morse_teacher/index.html](https://s53zo.github.io/Morse_teacher/)
 
 Key Features:
 
@@ -15,7 +15,7 @@ Lightweight: Built with vanilla JavaScript—no installation or build steps requ
 
 How to Use
 
-Open the https://s53zo.github.io/Morse_teacher/index.html
+Open the [https://s53zo.github.io/Morse_teacher/index.html](https://s53zo.github.io/Morse_teacher/)
 
 Select a Preset (e.g., Koch Progression).
 
